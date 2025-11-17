@@ -275,16 +275,48 @@ window.quickConnect = async function () {
     // Enable real-time event toggle
     enableRealtimeToggle();
   } catch (error) {
-    const errorMessage =
-      error?.message || error?.toString() || "Unknown error occurred";
+    // Enhanced error handling for WebSocket issues
+    let errorMessage = "Unknown error occurred";
+    let errorDetails = {};
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      errorDetails = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      };
+    } else if (typeof error === "string") {
+      errorMessage = error;
+      errorDetails = { error: error };
+    } else if (error && typeof error === "object") {
+      // Handle Event objects (like WebSocket errors)
+      errorDetails = {
+        type: error.type || "Unknown",
+        isTrusted: error.isTrusted,
+        message: error.message || "No message available",
+      };
+      errorMessage = `WebSocket connection error (${errorDetails.type})`;
+
+      // Provide specific guidance for WebSocket errors
+      if (error.type === "error") {
+        errorMessage =
+          "WebSocket connection blocked by browser security policy";
+      }
+    } else {
+      errorDetails = { error: error };
+    }
+
     log(`❌ Quick Connect failed: ${errorMessage}`, "error");
-    log(`Error details: ${JSON.stringify(error, null, 2)}`, "info");
+    log(`Error details: ${JSON.stringify(errorDetails, null, 2)}`, "info");
 
     log("Quick Connect troubleshooting:", "warning");
     log("- Check your internet connection", "warning");
     log("- Try refreshing the page and trying again", "warning");
     log("- Some networks block WebSocket connections", "warning");
     log("- TradingView may be temporarily unavailable", "warning");
+    log("- GitHub Pages may have WebSocket restrictions", "warning");
+    log("- Try using HTTP instead of HTTPS if available", "warning");
 
     updateStatus(`Quick Connect failed: ${errorMessage}`, "error");
     quickConnectBtn.disabled = false;
@@ -347,11 +379,40 @@ async function testConnection() {
     // Enable real-time event toggle
     enableRealtimeToggle();
   } catch (error) {
-    // Extract proper error message
-    const errorMessage =
-      error?.message || error?.toString() || "Unknown error occurred";
+    // Enhanced error handling for WebSocket issues
+    let errorMessage = "Unknown error occurred";
+    let errorDetails = {};
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      errorDetails = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      };
+    } else if (typeof error === "string") {
+      errorMessage = error;
+      errorDetails = { error: error };
+    } else if (error && typeof error === "object") {
+      // Handle Event objects (like WebSocket errors)
+      errorDetails = {
+        type: error.type || "Unknown",
+        isTrusted: error.isTrusted,
+        message: error.message || "No message available",
+      };
+      errorMessage = `WebSocket connection error (${errorDetails.type})`;
+
+      // Provide specific guidance for WebSocket errors
+      if (error.type === "error") {
+        errorMessage =
+          "WebSocket connection blocked by browser security policy";
+      }
+    } else {
+      errorDetails = { error: error };
+    }
+
     log(`❌ Connection failed: ${errorMessage}`, "error");
-    log(`Error details: ${JSON.stringify(error, null, 2)}`, "info");
+    log(`Error details: ${JSON.stringify(errorDetails, null, 2)}`, "info");
 
     if (authOptions.sessionId) {
       log("🔐 Authentication failed - possible reasons:", "warning");

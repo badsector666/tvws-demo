@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test - TVWS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        .info { background: #e3f2fd; color: #1565c0; }
+        button { padding: 10px 20px; margin: 5px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:disabled { background: #ccc; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Connection Test</h1>
+    <p>This page tests direct WebSocket connections to TradingView endpoints.</p>
+
+    <div>
+        <button onclick="testDirectWebSocket()">Test Direct WebSocket</button>
+        <button onclick="testTVWSLibrary()">Test TVWS Library</button>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <div id="log"></div>
+
+    <script type="module">
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.innerHTML += `<div class="log ${type}">[${timestamp}] ${message}</div>`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // Test direct WebSocket connection
+        window.testDirectWebSocket = function() {
+            log('Testing direct WebSocket connection to data.tradingview.com...', 'info');
+
+            try {
+                const ws = new WebSocket('wss://data.tradingview.com/socket.io/websocket');
+
+                ws.onopen = function() {
+                    log('✅ Direct WebSocket connection successful!', 'success');
+                    ws.close();
+                };
+
+                ws.onerror = function(event) {
+                    log(`❌ Direct WebSocket connection failed: ${event.type}`, 'error');
+                    log(`Error details: ${JSON.stringify({ type: event.type, isTrusted: event.isTrusted })}`, 'error');
+                };
+
+                ws.onclose = function(event) {
+                    if (event.code !== 1000) {
+                        log(`WebSocket closed abnormally: code=${event.code}, reason=${event.reason}`, 'error');
+                    }
+                };
+
+                // Timeout after 10 seconds
+                setTimeout(() => {
+                    if (ws.readyState === WebSocket.CONNECTING) {
+                        log('⏱️ WebSocket connection timeout', 'error');
+                        ws.close();
+                    }
+                }, 10000);
+
+            } catch (error) {
+                log(`❌ Exception creating WebSocket: ${error.message}`, 'error');
+            }
+        };
+
+        // Test TVWS Library
+        window.testTVWSLibrary = async function() {
+            log('Testing TVWS library connection...', 'info');
+
+            try {
+                const { connect } = await import('https://unpkg.com/tvws@0.0.11/dist/index.js');
+                log('✅ TVWS library loaded successfully', 'success');
+
+                const connection = await connect({
+                    endpoint: 'data',
+                    timeout: 10000
+                });
+
+                log('✅ TVWS connection successful!', 'success');
+                await connection.close();
+
+            } catch (error) {
+                let errorDetails = {};
+                if (error instanceof Error) {
+                    errorDetails = {
+                        name: error.name,
+                        message: error.message,
+                        stack: error.stack
+                    };
+                } else if (error && typeof error === 'object') {
+                    errorDetails = {
+                        type: error.type || 'Unknown',
+                        isTrusted: error.isTrusted
+                    };
+                }
+
+                log(`❌ TVWS connection failed: ${error.message || error}`, 'error');
+                log(`Error details: ${JSON.stringify(errorDetails, null, 2)}`, 'error');
+            }
+        };
+
+        // Initial log
+        log('WebSocket Test Page Loaded', 'success');
+        log('Current URL: ' + window.location.href, 'info');
+        log('User Agent: ' + navigator.userAgent.substring(0, 100) + '...', 'info');
+    </script>
+</body>
+</html>
