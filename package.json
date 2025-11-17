@@ -1,0 +1,31 @@
+{
+  "name": "tvws-demo",
+  "version": "1.0.0",
+  "description": "Live demo and examples for the TVWS TradingView WebSocket library",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "tradingview",
+    "websocket",
+    "demo",
+    "example",
+    "market-data",
+    "trading",
+    "forex",
+    "crypto",
+    "stocks"
+  ],
+  "author": "badsector666 <badsectorkiller666@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/badsector666/tvws-demo.git"
+  }
+}
